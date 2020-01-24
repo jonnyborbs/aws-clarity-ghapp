@@ -143,10 +143,10 @@ resource "aws_instance" "web" {
 
   # Lookup the correct AMI based on the region
   # we specified
-  ami = "${data.aws_ami.ubuntu.id}"
+  ami = data.aws_ami.ubuntu.id
 
   # The name of our SSH keypair we created above.
-  key_name = "${var.key_pair_name}"
+  key_name = var.key_pair_name
 
   # Our Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.default.id}"]
@@ -154,7 +154,7 @@ resource "aws_instance" "web" {
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances.
-  subnet_id = "${aws_subnet.default.id}"
+  subnet_id = aws_subnet.default.id
 
   # We run a remote provisioner on the instance after creating it.
   # In this case, we just install nginx and start it. By default,
