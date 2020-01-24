@@ -23,3 +23,8 @@ variable "slack_topic_name" {
 variable "slack_webhook_url" {
   description = "Slack webhook URL"
 }
+
+variable "ami_name" {
+  description = "AMI image to use"
+  default     = "ami-060cba801d2a85d65"
+}

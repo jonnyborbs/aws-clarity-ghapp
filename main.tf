@@ -1,7 +1,7 @@
 #init the backend
 terraform {
   backend "remote" {
-    hostname = "app.terraform.io"
+    hostname     = "app.terraform.io"
     organization = "jschulman-demo"
 
     workspaces {
@@ -14,7 +14,7 @@ terraform {
 # Specify the provider and access details
 provider "aws" {
   version = "~> 2.0"
-  region = var.aws_region
+  region  = var.aws_region
 }
 
 # Create a VPC to launch our instances into
@@ -111,39 +111,23 @@ resource "aws_elb" "web" {
   }
 }
 
-data "aws_ami" "ubuntu" {
-    most_recent = true
-
-    filter {
-        name = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
-    }
-
-    filter {
-        name = "virtualization-type"
-        values = ["hvm"]
-    }
-
-    owners = ["099720109477"]
-}
-
 resource "aws_instance" "web" {
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
   connection {
     # The default username for our AMI
-    type = "ssh"
-    user = "ubuntu"
-    host = self.public_ip
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = self.public_ip
     private_key = var.private_key
   }
 
-  instance_type = "t2.micro"
+  instance_type        = "t2.micro"
   iam_instance_profile = "EC2AccessSNS"
 
   # Lookup the correct AMI based on the region
   # we specified
-  ami = data.aws_ami.ubuntu.id
+  ami = var.ami_name
 
   # The name of our SSH keypair we created above.
   key_name = var.key_pair_name
@@ -161,38 +145,21 @@ resource "aws_instance" "web" {
   # this should be on port 80
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get update",
-      "sudo apt install nginx curl git -y",
-      "/usr/bin/git clone https://github.com/vaficionado/tf-demo-application /tmp/tf-demo-application",
-      "/bin/rm -rf /etc/nginx/conf.d/",
-      "/bin/rm -rf /usr/share/nginx/html/",
-      "/usr/bin/curl -sL https://deb.nodesource.com/setup_10.x | sudo bash -",
-      "sudo /usr/bin/apt install nodejs -y",
-      "/usr/bin/npx @angular/cli analytics off",
-      "sudo /usr/bin/npm install -g @angular/cli",
-      "cd /tmp/tf-demo-application &&  /usr/bin/npm install",
-      "/usr/bin/ng build --prod",
-      "sudo /bin/cp -R /tmp/tf-demo-application/dist/cmbu-demo-application/* /usr/share/nginx/html/",
-      "sudo /bin/sed -i \"s@root /var/www/html@root /usr/share/nginx/html@\" /etc/nginx/sites-available/default",
-      "sudo /bin/systemctl restart nginx",
-      "sudo ufw allow http",
-      "sudo apt install python3-pip -y",
-      "/usr/bin/pip3 install awscli --upgrade --user",
       "~/.local/bin/aws sns publish --target-arn ${module.notify-slack.this_slack_topic_arn} --region ${var.aws_region} --message \"server provisioned at ip ${aws_instance.web.public_ip}\"",
     ]
   }
   tags = {
-    AppName = "TFDemoApp"
-    AppOwner = "Jon"
+    AppName    = "TFDemoApp"
+    AppOwner   = "Jon"
     CostCenter = "TFE-PM-0001"
-    Name = "Clarity TF Demo App"
+    Name       = "Clarity TF Demo App"
   }
 }
 
 module "notify-slack" {
-  source  = "app.terraform.io/jschulman-demo/notify-slack/aws"
-  version = "2.0.0"
-  sns_topic_name = "${var.slack_topic_name}"
+  source            = "app.terraform.io/jschulman-demo/notify-slack/aws"
+  version           = "2.0.0"
+  sns_topic_name    = "${var.slack_topic_name}"
   slack_webhook_url = "${var.slack_webhook_url}"
   slack_channel     = "jms-notifications"
   slack_username    = "jms-tfe-slack"
