@@ -1,4 +1,4 @@
-# AWS based TFE Demo App
+# AWS based Clarity App
 This demo template will:
 - Create a VPC
 - Create a subnet
