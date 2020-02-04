@@ -1,4 +1,8 @@
 # Clarity App on AWS
+
+Note that this app relies on a private AMI template for statically compiled app deployment
+For a dynamically compiled app that uses public AMIs and open application code, please look instead to https://github.com/vaficionado/aws-demo-app
+
 This demo template will:
 - Create a VPC
 - Create a subnet
